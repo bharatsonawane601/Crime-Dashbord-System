@@ -1,8 +1,18 @@
-node_modules/
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
 .env
+
+# Logs
 *.log
+
+# OS
 .DS_Store
 Thumbs.db
+
+# Old assets
 analysis_output.txt
 logo.png
 Sample 1.png

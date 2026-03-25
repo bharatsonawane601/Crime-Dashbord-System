@@ -141,10 +141,14 @@ async function fetchData(force = false) {
 }
 
 // ─── SSE Connection ─────────────────────────────────────────
-function connectSSE() {
-    const evtSource = new EventSource('/api/events');
+let activeEvtSource = null;
 
-    evtSource.onmessage = function (event) {
+function connectSSE() {
+    if (activeEvtSource) activeEvtSource.close();
+    
+    activeEvtSource = new EventSource('/api/events');
+
+    activeEvtSource.onmessage = function (event) {
         const msg = JSON.parse(event.data);
         if (msg.type === 'data-updated') {
             console.log('Data updated! Refreshing...');
@@ -156,12 +160,19 @@ function connectSSE() {
         }
     };
 
-    evtSource.onerror = function () {
+    activeEvtSource.onerror = function () {
         console.warn('SSE connection lost, reconnecting in 3s...');
-        evtSource.close();
+        activeEvtSource.close();
         setTimeout(connectSSE, 3000);
     };
 }
+
+// Clean up SSE on page unload to prevent browser connection limit grouping (max 6)
+window.addEventListener('beforeunload', () => {
+    if (activeEvtSource) {
+        activeEvtSource.close();
+    }
+});
 
 // ─── Toast Notification ─────────────────────────────────────
 function showToast() {
